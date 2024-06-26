@@ -7,13 +7,12 @@ export async function createUser(
   res: Response
 ): Promise<Response | void> {
   const errors = validationResult(req);
+
   if (!errors.isEmpty()) {
     return res.status(400).json({ errors: errors.array() });
   }
 
   const { username, email, password } = req.body;
-
-  console.log("Request body:", req.body); // Debug log
 
   try {
     const existingUser = await UsersModel.findOne({
@@ -38,12 +37,30 @@ export async function createUser(
       updatedAt: user.updatedAt,
     };
 
-    console.log("User created:", userResponse); // Debug log
     return res.json(userResponse);
   } catch (error: any) {
-    console.error("Error creating user:", error); // Debug log
     return res
       .status(500)
       .json({ message: "Failed to create user.", error: error.message });
+  }
+}
+
+export async function getUsers(req: Request, res: Response) {
+  try {
+    const users = await UsersModel.find({});
+
+    const userResponses = users.map((user) => ({
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      createdAt: user.createdAt,
+      updatedAt: user.updatedAt,
+    }));
+
+    return res.json(userResponses);
+  } catch (error: any) {
+    return res
+      .status(500)
+      .json({ message: "Failed to retrieve users.", error: error.message });
   }
 }
